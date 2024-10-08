@@ -15,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.ag_apps.newsapp.article.prensentation.ArticleScreenCore
 import com.ag_apps.newsapp.core.data.NewsRepositoryImpl
 import com.ag_apps.newsapp.core.prensentation.ui.theme.NewsAppTheme
 import com.ag_apps.newsapp.news.prensentation.NewsScreenCore
@@ -32,7 +33,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Navigation(modifier: Modifier = Modifier) {
+    fun Navigation() {
         val navController = rememberNavController()
 
         NavHost(
@@ -49,7 +50,7 @@ class MainActivity : ComponentActivity() {
 
             composable<Screen.Article> { backStackEntry ->
                 val article: Screen.Article = backStackEntry.toRoute()
-                article.articleId
+                ArticleScreenCore(articleId = article.articleId)
             }
 
         }

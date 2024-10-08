@@ -2,6 +2,7 @@ package com.ag_apps.newsapp.core.data
 
 import com.ag_apps.newsapp.core.data.local.ArticlesDao
 import com.ag_apps.newsapp.core.data.remote.NewsListDto
+import com.ag_apps.newsapp.core.domain.Article
 import com.ag_apps.newsapp.core.domain.NewsList
 import com.ag_apps.newsapp.core.domain.NewsRepository
 import com.ag_apps.newsapp.core.domain.NewsResult
@@ -98,8 +99,50 @@ class NewsRepositoryImpl(
         }
     }
 
-//    override suspend fun getArticle(articleId: String): Flow<NewsResult<Article>> {
-//    }
+    override suspend fun getArticle(articleId: String): Flow<NewsResult<Article>> {
+        return flow {
+            dao.getArticle(articleId)?.let { article ->
+                println(tag + "get local article " + article.articleId)
+                emit(NewsResult.Success(article.toArticle()))
+                return@flow
+            }
+
+            try {
+                val remoteArticle: NewsListDto = httpClient.get(baseUrl) {
+                    parameter("apikey", apiKey)
+                    parameter("id", articleId)
+                }.body()
+
+                println(tag + "get article remote " + remoteArticle.results?.size)
+
+                if (remoteArticle.results?.isNotEmpty() == true) {
+                    emit(NewsResult.Success(remoteArticle.results[0].toArticle()))
+                } else {
+                    emit(NewsResult.Error("Can't Load Article"))
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                if (e is CancellationException) throw e
+                println(tag + "get article remote exception: " + e.message)
+                emit(NewsResult.Error("Can't Load Article"))
+            }
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -115,5 +158,5 @@ class NewsRepositoryImpl(
 
 
     private val baseUrl = "https://newsdata.io/api/1/latest"
-    private val apiKey = "xxx"
+    private val apiKey = "pub_552786af29afa282f2a74a8b9d86df0fa8561"
 }
