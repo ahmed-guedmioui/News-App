@@ -10,6 +10,6 @@ interface NewsRepository {
 
     suspend fun getNews(): Flow<NewsResult<NewsList>>
     suspend fun paginate(nextPage: String?): Flow<NewsResult<NewsList>>
-//    suspend fun getArticle(articleId: String): Flow<NewsResult<Article>>
+    suspend fun getArticle(articleId: String): Flow<NewsResult<Article>>
 
 }

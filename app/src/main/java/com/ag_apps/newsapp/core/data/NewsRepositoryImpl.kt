@@ -2,6 +2,7 @@ package com.ag_apps.newsapp.core.data
 
 import com.ag_apps.newsapp.core.data.local.ArticlesDao
 import com.ag_apps.newsapp.core.data.remote.NewsListDto
+import com.ag_apps.newsapp.core.domain.Article
 import com.ag_apps.newsapp.core.domain.NewsList
 import com.ag_apps.newsapp.core.domain.NewsRepository
 import com.ag_apps.newsapp.core.domain.NewsResult
@@ -71,7 +72,7 @@ class NewsRepositoryImpl(
                 return@flow
             }
 
-            emit(NewsResult.Error("No Data"))
+            emit(NewsResult.Error())
 
         }
     }
@@ -98,8 +99,38 @@ class NewsRepositoryImpl(
         }
     }
 
-//    override suspend fun getArticle(articleId: String): Flow<NewsResult<Article>> {
-//    }
+    override suspend fun getArticle(
+        articleId: String
+    ): Flow<NewsResult<Article>> {
+        return flow {
+
+            dao.getArticle(articleId)?.let { localArticle ->
+                println(tag + "getArticle local " + localArticle.articleId)
+                emit(NewsResult.Success(localArticle.toArticle()))
+                return@flow
+            }
+
+            try {
+                val response: NewsListDto = httpClient.get(baseUrl) {
+                    parameter("apikey", apiKey)
+                    parameter("id", articleId)
+                }.body()
+
+                println(tag + "getArticle remote " + response.results?.size)
+
+                if (response.results?.isNotEmpty() == true) {
+                    emit(NewsResult.Success(response.results[0].toArticle()))
+                } else {
+                    emit(NewsResult.Error())
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                println(tag + e.message)
+                emit(NewsResult.Error())
+            }
+        }
+    }
 
 
 
